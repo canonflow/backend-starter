@@ -12,6 +12,10 @@ func Parser[E, T any](fn func(E) (T, error), arg E, def T) T {
 }
 
 func SplitStringTrim(value string, sep string) []string {
+	if value == "" {
+		return []string{}
+	}
+
 	if sep == "" {
 		sep = ","
 	}
@@ -21,7 +25,7 @@ func SplitStringTrim(value string, sep string) []string {
 	result := make([]string, len(v))
 
 	for _, val := range v {
-		result = append(result, strings.Trim(val, " "))
+		result = append(result, strings.TrimSpace(val))
 	}
 
 	return result

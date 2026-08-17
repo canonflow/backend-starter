@@ -42,7 +42,7 @@ func createLogger() *zap.Logger {
 }
 
 func getLogLevelFromEnv() zapcore.Level {
-	levelStr := strings.ToLower(config.GetOrDefault[string](config.LogLevel, "info"))
+	levelStr := strings.ToLower(config.GetOrDefault(config.LogLevel, "info"))
 	switch levelStr {
 	case "debug":
 		return zap.DebugLevel
