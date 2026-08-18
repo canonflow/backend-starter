@@ -66,15 +66,7 @@ type ErrorItem struct {
 }
 
 type Meta struct {
-	Cached     *bool       `json:"cached,omitempty"`
 	Pagination *Pagination `json:"pagination,omitempty"`
-}
-
-type Pagination struct {
-	CurrentPage  int `json:"currentPage"`
-	PageSize     int `json:"pageSize"`
-	TotalRecords int `json:"totalRecords"`
-	TotalPages   int `json:"totalPages"`
 }
 
 func Success(data interface{}, meta *Meta) APIResponse {

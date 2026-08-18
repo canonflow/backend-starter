@@ -1,7 +1,11 @@
 package app
 
-import "github.com/go-playground/validator/v10"
+import goValidator "github.com/go-playground/validator/v10"
 
-func NewValidator() *validator.Validate {
-	return validator.New()
+func newValidator() *goValidator.Validate {
+	return goValidator.New()
+}
+
+func GetValidator() *goValidator.Validate {
+	return validator
 }
