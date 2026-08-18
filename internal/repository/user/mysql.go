@@ -23,12 +23,16 @@ func newUserRepository_MySQL(db *gorm.DB) IUserRepository {
 func (r *UserRepository_MySQL) List(context context.Context, pagination *response.Pagination, withTrashed bool) ([]model.User, error) {
 	var users []model.User
 
-	query := r.DB.WithContext(context).
-		Scopes(scope.Paginate(users, pagination, r.DB))
+	scopeFuncs := []func(*gorm.DB) *gorm.DB{
+		scope.Paginate(users, pagination, r.DB),
+	}
 
 	if !withTrashed {
-		query = query.Scopes(scope.WithoutTrashed)
+		scopeFuncs = append(scopeFuncs, scope.WithoutTrashed)
 	}
+
+	query := r.DB.WithContext(context).
+		Scopes(scopeFuncs...)
 
 	err := query.
 		Find(&users).
@@ -62,19 +66,16 @@ func (r *UserRepository_MySQL) FindBy(context context.Context, column string, va
 	return &user, nil
 }
 
-func (r *UserRepository_MySQL) Create(context context.Context, db *gorm.DB, user *model.User) error {
-	return db.WithContext(context).
-		Create(user).Error
+func (r *UserRepository_MySQL) Create(db *gorm.DB, user *model.User) error {
+	return db.Create(user).Error
 }
 
-func (r *UserRepository_MySQL) Update(context context.Context, db *gorm.DB, user *model.User) error {
-	return db.WithContext(context).
-		Save(user).Error
+func (r *UserRepository_MySQL) Update(db *gorm.DB, user *model.User) error {
+	return db.Save(user).Error
 }
 
-func (r *UserRepository_MySQL) Delete(context context.Context, db *gorm.DB, user *model.User) error {
+func (r *UserRepository_MySQL) Delete(db *gorm.DB, user *model.User) error {
 	now := time.Now()
 	user.DeletedAt = &now
-	return db.WithContext(context).
-		Save(user).Error
+	return db.Save(user).Error
 }
