@@ -2,6 +2,8 @@ package app
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/canonflow/backend-starter/internal/config"
@@ -23,7 +25,7 @@ func NewFiber() *fiber.App {
 			if e, ok := err.(*fiber.Error); ok {
 				code = e.Code
 				message = e.Message
-				codeMessage = message
+				codeMessage = formatCodeErrMessage(message)
 			}
 
 			return ctx.Status(code).
@@ -49,4 +51,28 @@ func NewFiber() *fiber.App {
 	}))
 
 	return app
+}
+
+var (
+	codeMessageRegex = regexp.MustCompile(`^(\[.*?\])\s*(.*)$`)
+	whitespaceRegex  = regexp.MustCompile(`\s+`)
+)
+
+func formatCodeErrMessage(input string) string {
+	matches := codeMessageRegex.FindStringSubmatch(input)
+
+	var prefix, message string
+
+	if matches == nil {
+		// No bracket prefix found — default to [0000]
+		prefix = "[0000]"
+		message = input
+	} else {
+		prefix = matches[1]
+		message = matches[2]
+	}
+
+	formatted := strings.ToUpper(whitespaceRegex.ReplaceAllString(message, "_"))
+
+	return prefix + " " + formatted
 }
