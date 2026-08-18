@@ -20,11 +20,11 @@ func newUserRepository_MySQL(db *gorm.DB) IUserRepository {
 	}
 }
 
-func (r *UserRepository_MySQL) List(context context.Context, pagination response.Pagination, withTrashed bool) ([]model.User, error) {
+func (r *UserRepository_MySQL) List(context context.Context, pagination *response.Pagination, withTrashed bool) ([]model.User, error) {
 	var users []model.User
 
 	query := r.DB.WithContext(context).
-		Scopes(scope.Paginate(users, &pagination, r.DB))
+		Scopes(scope.Paginate(users, pagination, r.DB))
 
 	if !withTrashed {
 		query = query.Scopes(scope.WithoutTrashed)

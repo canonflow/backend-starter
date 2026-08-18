@@ -8,6 +8,7 @@ import (
 	"github.com/canonflow/backend-starter/internal/model"
 	userRepository "github.com/canonflow/backend-starter/internal/repository/user"
 	"github.com/canonflow/backend-starter/pkg"
+	"github.com/canonflow/backend-starter/pkg/response"
 	"gorm.io/gorm"
 )
 
@@ -39,6 +40,26 @@ func (u *UserUsecaseV1) CreateAccessToken(ctx context.Context, id int, email, ke
 
 func (u *UserUsecaseV1) Authenticate(user *model.User, password string) bool {
 	return pkg.CheckHash(password, user.Password)
+}
+
+func (u *UserUsecaseV1) List(ctx context.Context, limit, page int, sortBy, sort string, withTrashed bool) ([]model.User, *response.Pagination, error) {
+	pagination := &response.Pagination{
+		Limit:  limit,
+		Page:   page,
+		Sort:   sort,
+		SortBy: sortBy,
+	}
+
+	users, err := u.UserRepository.List(
+		ctx,
+		pagination,
+		withTrashed,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return users, pagination, nil
 }
 
 func (u *UserUsecaseV1) Create(ctx context.Context, email, password string) (model.User, error) {
