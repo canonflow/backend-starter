@@ -28,6 +28,7 @@ const (
 	DBDriver
 	DBHost
 	DBName
+	DBPort
 	DBUsername
 	DBPassword
 
@@ -58,6 +59,7 @@ type config struct {
 	DBDriver   string
 	DBHost     string
 	DBName     string
+	DBPort     string
 	DBUsername string
 	DBPassword string
 
@@ -100,6 +102,7 @@ func loadConfig() {
 		// Database
 		cfg.DBDriver = os.Getenv("DB_DRIVER")
 		cfg.DBHost = os.Getenv("DB_HOST")
+		cfg.DBPort = os.Getenv("DB_PORT")
 		cfg.DBName = os.Getenv("DB_NAME")
 		cfg.DBUsername = os.Getenv("DB_USERNAME")
 		cfg.DBPassword = os.Getenv("DB_PASSWORD")
@@ -158,6 +161,8 @@ func (c *config) get(key ConfigKey) any {
 		return c.DBDriver
 	case DBHost:
 		return c.DBHost
+	case DBPort:
+		return c.DBPort
 	case DBName:
 		return c.DBName
 	case DBUsername:
