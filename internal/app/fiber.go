@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/bytedance/sonic"
 	"github.com/canonflow/backend-starter/internal/config"
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"
@@ -12,6 +13,8 @@ import (
 
 func NewFiber() *fiber.App {
 	app := fiber.New(fiber.Config{
+		JSONEncoder: sonic.Marshal,
+		JSONDecoder: sonic.Unmarshal,
 		// Prefork ListenConfig when serve the fiber
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
