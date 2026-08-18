@@ -16,7 +16,7 @@ func main() {
 	fmt.Println(environment)
 
 	ctx := context.Background()
-	ctx = app.NewContext(ctx)
+	ctx = app.WithLogger(ctx)
 
 	logger := app.LoggerFromContext(ctx)
 

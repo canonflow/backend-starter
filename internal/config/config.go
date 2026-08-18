@@ -12,7 +12,7 @@ import (
 type (
 	ConfigKey   int
 	ConfigValue interface {
-		~int | ~int8 | ~int32 | ~int64 |
+		~int | ~int8 | ~int32 | ~int64 | ~uint | ~uint64 |
 			~[]int | ~[]int8 | ~[]int32 | ~[]int64 |
 			~string | ~[]string |
 			~bool |
@@ -24,6 +24,8 @@ const (
 	AppEnv ConfigKey = iota
 	AppPort
 	AppKey
+
+	BcryptCost
 
 	DBDriver
 	DBHost
@@ -47,6 +49,12 @@ const (
 	CORSAllowCredentials
 	CORSAllowHeaders
 	CORSAllowMethods
+
+	JWTDurationInMinute
+	JWTPath
+	JWTDomain
+	JWTSecure
+	JWTHTTPOnly
 )
 
 var cfg *config
@@ -55,6 +63,8 @@ type config struct {
 	AppEnv  string
 	AppPort string
 	AppKey  string
+
+	BcryptCost int
 
 	DBDriver   string
 	DBHost     string
@@ -78,6 +88,12 @@ type config struct {
 	CORSAllowCredentials bool
 	CORSAllowHeaders     []string
 	CORSAllowMethods     []string
+
+	JWTDurationInMinute uint
+	JWTPath             string
+	JWTDomain           string
+	JWTSecure           bool
+	JWTHTTPOnly         bool
 }
 
 func init() {
@@ -98,6 +114,11 @@ func loadConfig() {
 		cfg.AppPort = os.Getenv("APP_PORT")
 		cfg.AppKey = os.Getenv("APP_KEY")
 		cfg.LogLevel = os.Getenv("LOG_LEVEL")
+		cfg.BcryptCost = helpers.Parser(
+			strconv.Atoi,
+			os.Getenv("BCRYPT_COST"),
+			10,
+		)
 
 		// Database
 		cfg.DBDriver = os.Getenv("DB_DRIVER")
@@ -146,6 +167,25 @@ func loadConfig() {
 			os.Getenv("CORS_ALLOW_METHODS"),
 			",",
 		)
+
+		// JWT
+		cfg.JWTDurationInMinute = helpers.Parser(
+			helpers.ParseUint,
+			os.Getenv("JWT_DURATION_IN_MINUTES"),
+			3600,
+		)
+		cfg.JWTPath = os.Getenv("JWT_PATH")
+		cfg.JWTDomain = os.Getenv("JWT_DOMAIN")
+		cfg.JWTSecure = helpers.Parser(
+			strconv.ParseBool,
+			os.Getenv("JWT_SECURE"),
+			false,
+		)
+		cfg.JWTHTTPOnly = helpers.Parser(
+			strconv.ParseBool,
+			os.Getenv("JWT_HTTP_ONLY"),
+			true,
+		)
 	}
 }
 
@@ -157,6 +197,8 @@ func (c *config) get(key ConfigKey) any {
 		return c.AppPort
 	case AppKey:
 		return c.AppKey
+	case BcryptCost:
+		return c.BcryptCost
 	case DBDriver:
 		return c.DBDriver
 	case DBHost:
@@ -193,6 +235,16 @@ func (c *config) get(key ConfigKey) any {
 		return c.CORSAllowHeaders
 	case CORSAllowMethods:
 		return c.CORSAllowMethods
+	case JWTDurationInMinute:
+		return c.JWTDurationInMinute
+	case JWTPath:
+		return c.JWTPath
+	case JWTDomain:
+		return c.JWTDomain
+	case JWTSecure:
+		return c.JWTSecure
+	case JWTHTTPOnly:
+		return c.JWTHTTPOnly
 	default:
 		return nil
 	}
