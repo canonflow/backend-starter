@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,6 +17,14 @@ import (
 	"go.uber.org/zap"
 )
 
+func PrintRoutes(app *fiber.App) {
+	routes := app.GetRoutes(true) // true = filter out middleware-registered routes
+
+	for _, route := range routes {
+		fmt.Printf("%-6s %s\n", route.Method, route.Path)
+	}
+}
+
 func main() {
 	fiberApp := app.NewFiber()
 	db := app.NewDatabase(config.Get[string](config.DBDriver), core.GetLogger())
@@ -26,6 +35,11 @@ func main() {
 		DB:  db,
 		App: fiberApp,
 	})
+
+	// Print All Routes
+	if config.Get[string](config.AppEnv) == "development" && !fiber.IsChild() {
+		PrintRoutes(fiberApp)
+	}
 
 	go func() {
 		if err := fiberApp.Listen(appHost+":"+appPort, fiber.ListenConfig{
