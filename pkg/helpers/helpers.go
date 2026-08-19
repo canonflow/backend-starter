@@ -36,10 +36,14 @@ func SplitStringTrim(value string, sep string) []string {
 
 	v := strings.Split(value, sep)
 
-	result := make([]string, len(v))
+	result := make([]string, 0, len(v))
 
 	for _, val := range v {
-		result = append(result, strings.TrimSpace(val))
+		trimmed := strings.TrimSpace(val)
+		if trimmed == "" {
+			continue
+		}
+		result = append(result, trimmed)
 	}
 
 	return result

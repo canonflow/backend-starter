@@ -2,24 +2,52 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/canonflow/backend-starter/internal/app"
 	_ "github.com/canonflow/backend-starter/internal/app"
 	"github.com/canonflow/backend-starter/internal/config"
 	_ "github.com/canonflow/backend-starter/internal/config"
+	"github.com/canonflow/backend-starter/internal/core"
+	"github.com/gofiber/fiber/v3"
+	"go.uber.org/zap"
 )
 
 func main() {
-	environment := config.Get[string](config.AppEnv)
+	fiberApp := app.NewFiber()
+	db := app.NewDatabase(config.Get[string](config.DBDriver), core.GetLogger())
 
-	fmt.Println(environment)
+	appHost := config.Get[string](config.AppHost)
+	appPort := config.Get[string](config.AppPort)
+	app.Bootstrap(&app.BootstrapConfig{
+		DB:  db,
+		App: fiberApp,
+	})
 
-	ctx := context.Background()
-	ctx = app.WithLogger(ctx)
+	go func() {
+		if err := fiberApp.Listen(appHost+":"+appPort, fiber.ListenConfig{
+			EnablePrefork: true,
+		}); err != nil {
+			core.GetLogger().Info("Server Error", zap.String("error", err.Error()))
+		}
+	}()
 
-	logger := app.LoggerFromContext(ctx)
+	// Block until an interrupt/terminate signal is received
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
 
-	logger.Info("test")
-	logger.Info("test2")
+	core.GetLogger().Info("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := fiberApp.ShutdownWithContext(ctx); err != nil {
+		core.GetLogger().Fatal("forced shutdown: %v", zap.String("error", err.Error()))
+	}
+
+	core.GetLogger().Info("Server exited gracefully")
 }

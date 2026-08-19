@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/canonflow/backend-starter/internal/app"
+	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/internal/config"
 	"github.com/canonflow/backend-starter/internal/dto"
 	usecase "github.com/canonflow/backend-starter/internal/usecase/user"
@@ -33,7 +33,7 @@ func NewUserHandler(userUsecase usecase.IUserUsecase) *UserHandler {
 
 func (h *UserHandler) SignUp(ctx fiber.Ctx) error {
 	var userDto dto.CreateUserRequest
-	logger := app.LoggerFromContext(ctx.Context())
+	logger := core.LoggerFromContext(ctx.Context())
 
 	if err := ctx.Bind().Body(&userDto); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -96,7 +96,7 @@ func (h *UserHandler) SignIn(ctx fiber.Ctx) error {
 	}
 
 	// Set Access Token to HTTP-Only Cookie
-	wrapper := app.NewFiberContextWrapper(ctx)
+	wrapper := core.NewFiberContextWrapper(ctx)
 	wrapper.SetToken(tokenString, config.Get[uint](config.JWTDurationInMinute))
 
 	return ctx.Status(fiber.StatusOK).

@@ -22,6 +22,7 @@ type (
 
 const (
 	AppEnv ConfigKey = iota
+	AppHost
 	AppPort
 	AppKey
 
@@ -62,6 +63,7 @@ var cfg *config
 
 type config struct {
 	AppEnv  string
+	AppHost string
 	AppPort string
 	AppKey  string
 
@@ -114,6 +116,7 @@ func loadConfig() {
 		// App Config
 		cfg.AppEnv = os.Getenv("APP_ENV")
 		cfg.AppPort = os.Getenv("APP_PORT")
+		cfg.AppHost = os.Getenv("APP_HOST")
 		cfg.AppKey = os.Getenv("APP_KEY")
 		cfg.LogLevel = os.Getenv("LOG_LEVEL")
 		cfg.BcryptCost = helpers.Parser(
@@ -196,6 +199,8 @@ func (c *config) get(key ConfigKey) any {
 	switch key {
 	case AppEnv:
 		return c.AppEnv
+	case AppHost:
+		return c.AppHost
 	case AppPort:
 		return c.AppPort
 	case AppKey:

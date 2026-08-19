@@ -1,4 +1,4 @@
-package app
+package core
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 type loggerKey struct{}
 
 func WithLogger(ctx context.Context) context.Context {
-	lg := logger.With(
+	lg := GetLogger().With(
 		zap.String("request_id", helpers.GenerateUUID()),
 	)
 	return context.WithValue(ctx, loggerKey{}, lg)

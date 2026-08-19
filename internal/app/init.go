@@ -1,18 +1,13 @@
 package app
 
 import (
+	"github.com/canonflow/backend-starter/internal/core"
 	goValidator "github.com/go-playground/validator/v10"
-	"go.uber.org/zap"
 )
 
-var (
-	logger    *zap.Logger
-	validator *goValidator.Validate
-)
+var validator *goValidator.Validate
 
 func init() {
-	logger = createLogger()
+	core.CreateLogger()
 	validator = newValidator()
-
-	defer logger.Sync()
 }

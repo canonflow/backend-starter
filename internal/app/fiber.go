@@ -7,6 +7,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/canonflow/backend-starter/internal/config"
+	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/pkg/response"
 	goValidator "github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -49,7 +50,7 @@ func NewFiber() *fiber.App {
 	app.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 		StackTraceHandler: func(ctx fiber.Ctx, e interface{}) {
-			logger := LoggerFromContext(ctx.Context())
+			logger := core.LoggerFromContext(ctx.Context())
 			logger.Error(fmt.Sprintf("[0000] Panic Occured: %v\n", e))
 		},
 	}))
