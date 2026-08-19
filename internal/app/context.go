@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"strings"
 	"time"
 
+	"github.com/canonflow/backend-starter/internal/config"
 	"github.com/canonflow/backend-starter/pkg"
 	"github.com/canonflow/backend-starter/pkg/helpers"
 	"github.com/gofiber/fiber/v3"
@@ -56,8 +58,8 @@ func (f *FiberContextWrapper) SetToken(value string, durationInMinutes uint) {
 		Name:     pkg.TOKEN_COOKIE,
 		Value:    value,
 		Expires:  time.Now().Add(time.Minute * time.Duration(durationInMinutes)),
-		HTTPOnly: true,
-		Secure:   true,
-		SameSite: "Lax",
+		HTTPOnly: config.Get[bool](config.JWTHTTPOnly),
+		Secure:   config.Get[bool](config.JWTSecure),
+		SameSite: strings.ToTitle(config.Get[string](config.JWTSameSite)),
 	})
 }

@@ -51,6 +51,7 @@ const (
 	CORSAllowMethods
 
 	JWTDurationInMinute
+	JWTSameSite
 	JWTPath
 	JWTDomain
 	JWTSecure
@@ -90,6 +91,7 @@ type config struct {
 	CORSAllowMethods     []string
 
 	JWTDurationInMinute uint
+	JWTSameSite         string
 	JWTPath             string
 	JWTDomain           string
 	JWTSecure           bool
@@ -174,6 +176,7 @@ func loadConfig() {
 			os.Getenv("JWT_DURATION_IN_MINUTES"),
 			3600,
 		)
+		cfg.JWTSameSite = os.Getenv("JWT_SAME_SITE")
 		cfg.JWTPath = os.Getenv("JWT_PATH")
 		cfg.JWTDomain = os.Getenv("JWT_DOMAIN")
 		cfg.JWTSecure = helpers.Parser(
@@ -237,6 +240,8 @@ func (c *config) get(key ConfigKey) any {
 		return c.CORSAllowMethods
 	case JWTDurationInMinute:
 		return c.JWTDurationInMinute
+	case JWTSameSite:
+		return c.JWTSameSite
 	case JWTPath:
 		return c.JWTPath
 	case JWTDomain:

@@ -42,6 +42,15 @@ func (u *UserUsecaseV1) Authenticate(user *model.User, password string) bool {
 	return pkg.CheckHash(password, user.Password)
 }
 
+func (u *UserUsecaseV1) FindBy(ctx context.Context, column string, value any, withTrashed bool) (*model.User, error) {
+	user, err := u.UserRepository.FindBy(ctx, column, value, withTrashed)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (u *UserUsecaseV1) List(ctx context.Context, limit, page int, sortBy, sort string, withTrashed bool) ([]model.User, *response.Pagination, error) {
 	pagination := &response.Pagination{
 		Limit:  limit,
@@ -89,7 +98,7 @@ func (u *UserUsecaseV1) Create(ctx context.Context, email, password string) (mod
 		DeletedAt: nil,
 	}
 
-	err = u.UserRepository.Create(ctx, tx, &user)
+	err = u.UserRepository.Create(tx, &user)
 	if err != nil {
 		return model.User{}, nil
 	}
@@ -114,7 +123,7 @@ func (u *UserUsecaseV1) Update(ctx context.Context, user *model.User) error {
 		Begin()
 	defer tx.Rollback()
 
-	if err := u.UserRepository.Update(ctx, tx, user); err != nil {
+	if err := u.UserRepository.Update(tx, user); err != nil {
 		return err
 	}
 
@@ -138,7 +147,7 @@ func (u *UserUsecaseV1) Delete(ctx context.Context, user *model.User) error {
 		Begin()
 	defer tx.Rollback()
 
-	if err := u.UserRepository.Delete(ctx, tx, user); err != nil {
+	if err := u.UserRepository.Delete(tx, user); err != nil {
 		return err
 	}
 

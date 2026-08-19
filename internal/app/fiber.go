@@ -8,15 +8,27 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/canonflow/backend-starter/internal/config"
 	"github.com/canonflow/backend-starter/pkg/response"
+	goValidator "github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 )
 
+type FiberValidator struct {
+	validate *goValidator.Validate
+}
+
+func (v *FiberValidator) Validate(out any) error {
+	return v.validate.Struct(out)
+}
+
 func NewFiber() *fiber.App {
 	app := fiber.New(fiber.Config{
 		JSONEncoder: sonic.Marshal,
 		JSONDecoder: sonic.Unmarshal,
+		StructValidator: &FiberValidator{
+			validate: validator,
+		},
 		// Prefork ListenConfig when serve the fiber
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
