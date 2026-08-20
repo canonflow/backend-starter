@@ -10,19 +10,20 @@ import (
 	usecase "github.com/canonflow/backend-starter/internal/usecase/user"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/redis/go-redis/v9"
+	fiberredis "github.com/gofiber/storage/redis/v3"
+	redigo "github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type BootstrapConfig struct {
 	DB    *gorm.DB
 	App   *fiber.App
-	Redis *redis.Client
+	Redis *redigo.Client
 }
 
 func Bootstrap(cfg *BootstrapConfig) {
 	// Setup Repo
-	userRepository := userRepo.NewUserRepositoryFactory(cfg.DB, internalRepo.GetDriver(config.GetOrDefault[string](config.DBDriver, "mysql")))
+	userRepository := userRepo.NewUserRepositoryFactory(cfg.DB, internalRepo.GetDriver(config.GetOrDefault(config.DBDriver, "mysql")))
 
 	// Setup Usecase
 	userUsecase := usecase.NewUserUsecaseV1(cfg.DB, userRepository)
@@ -35,8 +36,9 @@ func Bootstrap(cfg *BootstrapConfig) {
 	api := cfg.App.Group("/api", requestLoggerMiddleware)
 
 	// Setup Route
+	throttleStorage := fiberredis.NewFromConnection(cfg.Redis)
 	routeGroup := delivery.RouteGroup{}
-	userRoute := delivery.NewUserRoute(api, userHandler)
+	userRoute := delivery.NewUserRoute(api, userHandler, throttleStorage)
 	routeGroup.Register(userRoute)
 
 	// Init

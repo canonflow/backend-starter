@@ -30,7 +30,6 @@ func NewFiber() *fiber.App {
 		StructValidator: &FiberValidator{
 			validate: validator,
 		},
-		// Prefork ListenConfig when serve the fiber
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
 			codeMessage := "[0000] INTERNAL_SERVER_ERROR"
@@ -51,7 +50,7 @@ func NewFiber() *fiber.App {
 		EnableStackTrace: true,
 		StackTraceHandler: func(ctx fiber.Ctx, e interface{}) {
 			logger := core.LoggerFromContext(ctx.Context())
-			logger.Error(fmt.Sprintf("[0000] Panic Occured: %v\n", e))
+			logger.Error(fmt.Sprintf("[0000] Panic Occured: %v", e))
 		},
 	}))
 

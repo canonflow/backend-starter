@@ -12,7 +12,7 @@ import (
 func NewRedis(log *zap.Logger) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", config.Get[string](config.RedisHost), config.Get[string](config.RedisPort)),
-		Password: config.Get[string](config.RedisPassword),
+		Password: config.GetOrDefault(config.RedisPassword, ""),
 		DB:       0,
 		Protocol: 2,
 	})

@@ -28,12 +28,14 @@ func PrintRoutes(app *fiber.App) {
 func main() {
 	fiberApp := app.NewFiber()
 	db := app.NewDatabase(config.Get[string](config.DBDriver), core.GetLogger())
+	redisClient := app.NewRedis(core.GetLogger())
 
 	appHost := config.Get[string](config.AppHost)
 	appPort := config.Get[string](config.AppPort)
 	app.Bootstrap(&app.BootstrapConfig{
-		DB:  db,
-		App: fiberApp,
+		DB:    db,
+		App:   fiberApp,
+		Redis: redisClient,
 	})
 
 	// Print All Routes
@@ -45,7 +47,9 @@ func main() {
 		if err := fiberApp.Listen(appHost+":"+appPort, fiber.ListenConfig{
 			EnablePrefork: true,
 		}); err != nil {
-			core.GetLogger().Info("Server Error", zap.String("error", err.Error()))
+			if !fiber.IsChild() {
+				core.GetLogger().Info("Server Error", zap.String("error", err.Error()))
+			}
 		}
 	}()
 
@@ -54,14 +58,18 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	core.GetLogger().Info("Shutting down server...")
+	if !fiber.IsChild() {
+		core.GetLogger().Info("Shutting down server...")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := fiberApp.ShutdownWithContext(ctx); err != nil {
-		core.GetLogger().Fatal("forced shutdown: %v", zap.String("error", err.Error()))
+		core.GetLogger().Fatal("Forced Shutdown!!!", zap.String("error", err.Error()))
 	}
 
-	core.GetLogger().Info("Server exited gracefully")
+	if !fiber.IsChild() {
+		core.GetLogger().Info("Server exited gracefully")
+	}
 }

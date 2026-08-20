@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/internal/config"
+	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/internal/dto"
 	usecase "github.com/canonflow/backend-starter/internal/usecase/user"
 	"github.com/canonflow/backend-starter/pkg/response"
