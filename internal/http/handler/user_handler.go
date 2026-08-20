@@ -5,6 +5,7 @@ import (
 	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/internal/dto"
 	usecase "github.com/canonflow/backend-starter/internal/usecase/user"
+	"github.com/canonflow/backend-starter/pkg"
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
@@ -19,6 +20,8 @@ const (
 	ErrCodeSignInEmail          = "[USR-SI-002]" + " NOT_FOUND"
 	ErrCodeSignInPassword       = "[USR-SI-003]" + " NOT_FOUND"
 	ErrCodeSignInAccessToken    = "[USR-SI-004]" + " INTERNAL_SERVER_ERROR"
+
+	LogPrefixMe = "[USR-ME]"
 )
 
 type UserHandler struct {
@@ -98,6 +101,29 @@ func (h *UserHandler) SignIn(ctx fiber.Ctx) error {
 	// Set Access Token to HTTP-Only Cookie
 	wrapper := core.NewFiberContextWrapper(ctx)
 	wrapper.SetToken(tokenString, config.Get[uint](config.JWTDurationInMinute))
+
+	return ctx.Status(fiber.StatusOK).
+		JSON(response.Success(
+			user,
+			nil,
+		))
+}
+
+func (h *UserHandler) Me(ctx fiber.Ctx) error {
+	ctxWrapper := core.NewFiberContextWrapper(ctx)
+
+	userId, ok := core.GetLocal[int](ctxWrapper, pkg.JWTUserIDKey)
+
+	if !ok {
+		return ctx.Status(fiber.StatusUnauthorized).
+			JSON(response.Error("UNAUTHORIZED_ACCESS", "Unauthorized", "-"))
+	}
+
+	user, err := h.UserUsecase.FindBy(ctx.Context(), "id", userId, false)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).
+			JSON(response.Error("UNAUTHORIZED_ACCESS", "Unauthorized", "-"))
+	}
 
 	return ctx.Status(fiber.StatusOK).
 		JSON(response.Success(

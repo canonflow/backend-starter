@@ -63,3 +63,28 @@ func (f *FiberContextWrapper) SetToken(value string, durationInMinutes uint) {
 		SameSite: strings.ToTitle(config.Get[string](config.JWTSameSite)),
 	})
 }
+
+func (f *FiberContextWrapper) SetLocal(key string, value any) {
+	f.context.Locals(key, value)
+}
+
+func (f *FiberContextWrapper) Local(key string) any {
+	return f.context.Locals(key)
+}
+
+func GetLocal[T any](ctx pkg.AccessTokenContextWrapper, key string) (T, bool) {
+	var zero T
+	raw := ctx.Local(key)
+	if raw == nil {
+		return zero, false
+	}
+	val, ok := raw.(T)
+	if !ok {
+		return zero, false
+	}
+	return val, true
+}
+
+func SetLocal[T any](ctx pkg.AccessTokenContextWrapper, key string, value T) {
+	ctx.SetLocal(key, value)
+}

@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"github.com/canonflow/backend-starter/internal/config"
 	"github.com/canonflow/backend-starter/internal/http/handler"
 	"github.com/canonflow/backend-starter/internal/http/middleware"
 	"github.com/gofiber/fiber/v3"
@@ -25,18 +26,39 @@ func NewUserRoute(app fiber.Router, userHandler *handler.UserHandler, redisClien
 func (r *UserRoute) Setup() {
 	userV1Path := r.App.Group("/v1/user")
 
+	authMiddleware := middleware.AuthMiddleware(config.Get[string](config.AppKey))
+
 	userV1Path.Get(
-		"/",
+		"/me",
 		middleware.Throttle(middleware.ThrottleConfig{
 			MaxAttempts:  5,
 			DecayMinutes: 1,
-			KeyPrefix:    "test",
+			KeyPrefix:    "me",
 			Storage:      r.ThrottleStorage,
 		}),
+		authMiddleware,
 		func(c fiber.Ctx) error {
 			return c.SendString("Test Throttle")
 		},
 	)
-	userV1Path.Post("/signup", r.UserHandler.SignUp)
-	userV1Path.Post("/signin", r.UserHandler.SignIn)
+	userV1Path.Post(
+		"/signup",
+		middleware.Throttle(middleware.ThrottleConfig{
+			MaxAttempts:  5,
+			DecayMinutes: 1,
+			KeyPrefix:    "signup",
+			Storage:      r.ThrottleStorage,
+		}),
+		r.UserHandler.SignUp,
+	)
+	userV1Path.Post(
+		"/signin",
+		middleware.Throttle(middleware.ThrottleConfig{
+			MaxAttempts:  5,
+			DecayMinutes: 1,
+			KeyPrefix:    "signin",
+			Storage:      r.ThrottleStorage,
+		}),
+		r.UserHandler.SignIn,
+	)
 }
