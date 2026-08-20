@@ -1,4 +1,4 @@
-.PHONY: migrate-create migrate-up migrate-down migrate-version migrate-force migrate-drop
+.PHONY: migrate-create migrate-up migrate-down migrate-version migrate-force migrate-drop key-generate
 
 include .env
 export
@@ -55,3 +55,6 @@ migrate-drop:
 		exit 1; \
 	fi
 	go run cmd/migration/main.go drop
+
+key-generate:
+	go run cmd/scripts/key_generator.go
