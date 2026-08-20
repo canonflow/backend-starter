@@ -126,14 +126,9 @@ func (h *UserHandler) SignIn(ctx fiber.Ctx) error {
 }
 
 func (h *UserHandler) SignOut(ctx fiber.Ctx) error {
-	logger := core.LoggerFromContext(ctx.Context())
 	ctxWrapper := core.NewFiberContextWrapper(ctx)
-	token, _ := ctxWrapper.GetToken()
 
 	ctxWrapper.DeleteToken()
-	logger.Info("Signing Out...",
-		zap.String("token", token),
-	)
 
 	return ctx.Status(fiber.StatusOK).
 		JSON(response.Success(
