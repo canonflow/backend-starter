@@ -111,6 +111,7 @@ func (h *UserHandler) SignIn(ctx fiber.Ctx) error {
 
 func (h *UserHandler) Me(ctx fiber.Ctx) error {
 	ctxWrapper := core.NewFiberContextWrapper(ctx)
+	logger := core.LoggerFromContext(ctx.Context())
 
 	userId, ok := core.GetLocal[int](ctxWrapper, pkg.JWTUserIDKey)
 
@@ -124,6 +125,10 @@ func (h *UserHandler) Me(ctx fiber.Ctx) error {
 		return ctx.Status(fiber.StatusUnauthorized).
 			JSON(response.Error("UNAUTHORIZED_ACCESS", "Unauthorized", "-"))
 	}
+
+	logger.Info(LogPrefixSignUp+" Parsing user information from token",
+		zap.Int("id", userId),
+	)
 
 	return ctx.Status(fiber.StatusOK).
 		JSON(response.Success(

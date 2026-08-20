@@ -12,7 +12,7 @@ import (
 	gormLogger "gorm.io/gorm/logger"
 )
 
-type dbProperty struct {
+type DBProperty struct {
 	Driver                string
 	Host                  string
 	Port                  string
@@ -24,7 +24,7 @@ type dbProperty struct {
 	MaxLifetimeConnection int
 }
 
-func getDriverConnection(property dbProperty) string {
+func GetDriverConnection(property DBProperty) string {
 	switch strings.ToLower(property.Driver) {
 	case "mysql":
 		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -65,7 +65,7 @@ func NewDatabase(driver string, log *zap.Logger) *gorm.DB {
 	maxConnection := config.Get[int](config.DBMax)
 	maxLifetimeConnection := config.Get[int](config.DBLifeTime)
 
-	dsn := getDriverConnection(dbProperty{
+	dsn := GetDriverConnection(DBProperty{
 		Driver:                driver,
 		Username:              username,
 		Password:              password,
