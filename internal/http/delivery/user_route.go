@@ -26,21 +26,6 @@ func NewUserRoute(app fiber.Router, userHandler *handler.UserHandler, redisClien
 func (r *UserRoute) Setup() {
 	userV1Path := r.App.Group("/v1/user")
 
-	authMiddleware := middleware.AuthMiddleware(config.Get[string](config.AppKey))
-
-	userV1Path.Get(
-		"/me",
-		middleware.Throttle(middleware.ThrottleConfig{
-			MaxAttempts:  5,
-			DecayMinutes: 1,
-			KeyPrefix:    "me",
-			Storage:      r.ThrottleStorage,
-		}),
-		authMiddleware,
-		func(c fiber.Ctx) error {
-			return c.SendString("Test Throttle")
-		},
-	)
 	userV1Path.Post(
 		"/signup",
 		middleware.Throttle(middleware.ThrottleConfig{
@@ -60,5 +45,30 @@ func (r *UserRoute) Setup() {
 			Storage:      r.ThrottleStorage,
 		}),
 		r.UserHandler.SignIn,
+	)
+
+	authMiddleware := middleware.AuthMiddleware(config.Get[string](config.AppKey))
+	authPath := userV1Path.Group("", authMiddleware)
+
+	authPath.Get(
+		"/me",
+		middleware.Throttle(middleware.ThrottleConfig{
+			MaxAttempts:  5,
+			DecayMinutes: 1,
+			KeyPrefix:    "me",
+			Storage:      r.ThrottleStorage,
+		}),
+		r.UserHandler.Me,
+	)
+
+	authPath.Post(
+		"signout",
+		middleware.Throttle(middleware.ThrottleConfig{
+			MaxAttempts:  2,
+			DecayMinutes: 1,
+			KeyPrefix:    "signout",
+			Storage:      r.ThrottleStorage,
+		}),
+		r.UserHandler.SignOut,
 	)
 }

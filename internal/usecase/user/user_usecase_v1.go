@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/canonflow/backend-starter/internal/config"
 	"github.com/canonflow/backend-starter/internal/model"
@@ -72,12 +71,6 @@ func (u *UserUsecaseV1) List(ctx context.Context, limit, page int, sortBy, sort 
 }
 
 func (u *UserUsecaseV1) Create(ctx context.Context, email, password string) (model.User, error) {
-	// Find the user
-	_, err := u.UserRepository.FindBy(ctx, "email", email, false)
-	if err == nil {
-		return model.User{}, errors.New("Email is already taken")
-	}
-
 	// Generate Hashed-password
 	hashedPassword, err := pkg.Hash(password)
 	if err != nil {

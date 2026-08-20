@@ -50,7 +50,14 @@ func (f *FiberContextWrapper) GetToken() (string, error) {
 }
 
 func (f *FiberContextWrapper) DeleteToken() {
-	f.context.ClearCookie(pkg.TOKEN_COOKIE)
+	f.context.Cookie(&fiber.Cookie{
+		Name:     pkg.TOKEN_COOKIE,
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: config.Get[bool](config.JWTHTTPOnly),
+		Secure:   config.Get[bool](config.JWTSecure),
+		SameSite: strings.ToTitle(config.Get[string](config.JWTSameSite)),
+	})
 }
 
 func (f *FiberContextWrapper) SetToken(value string, durationInMinutes uint) {

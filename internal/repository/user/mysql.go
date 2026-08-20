@@ -57,7 +57,7 @@ func (r *UserRepository_MySQL) FindBy(context context.Context, column string, va
 	}
 
 	err := query.
-		Find(&user).
+		First(&user).
 		Error
 	if err != nil {
 		return nil, err

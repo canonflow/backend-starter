@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/canonflow/backend-starter/internal/config"
 	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/internal/dto"
@@ -9,6 +11,7 @@ import (
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 const (
@@ -45,12 +48,25 @@ func (h *UserHandler) SignUp(ctx fiber.Ctx) error {
 		zap.String("email", userDto.Email),
 	)
 
-	// Check the username
+	// Check the email
 	_, err := h.UserUsecase.FindBy(ctx.Context(), "email", userDto.Email, false)
-	if err != nil {
+	if err == nil {
 		return ctx.Status(fiber.StatusBadRequest).
 			JSON(response.Error(ErrCodeSignUpEmail, "Email is already taken", "email"))
 	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		logger.Error(LogPrefixSignUp+" Failed to check existing email",
+			zap.String("email", userDto.Email),
+			zap.Error(err),
+		)
+		return ctx.Status(fiber.StatusInternalServerError).
+			JSON(response.Error("INTERNAL_SERVER_ERROR", "Something went wrong", "-"))
+	}
+
+	logger.Info(LogPrefixSignUp+" Creating user...",
+		zap.String("email", userDto.Email),
+	)
 
 	// Create user
 	user, err := h.UserUsecase.Create(ctx.Context(), userDto.Email, userDto.Password)
@@ -105,6 +121,23 @@ func (h *UserHandler) SignIn(ctx fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).
 		JSON(response.Success(
 			user,
+			nil,
+		))
+}
+
+func (h *UserHandler) SignOut(ctx fiber.Ctx) error {
+	logger := core.LoggerFromContext(ctx.Context())
+	ctxWrapper := core.NewFiberContextWrapper(ctx)
+	token, _ := ctxWrapper.GetToken()
+
+	ctxWrapper.DeleteToken()
+	logger.Info("Signing Out...",
+		zap.String("token", token),
+	)
+
+	return ctx.Status(fiber.StatusOK).
+		JSON(response.Success(
+			"success",
 			nil,
 		))
 }

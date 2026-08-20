@@ -1,7 +1,9 @@
 package app
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,6 +12,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
+	"gorm.io/gorm/utils"
 )
 
 type DBProperty struct {
@@ -80,7 +83,7 @@ func NewDatabase(driver string, log *zap.Logger) *gorm.DB {
 
 	db, err := gorm.Open(databaseDriver(dsn), &gorm.Config{
 		Logger: gormLogger.New(&zapWriter{
-			Logger: log,
+			Logger: log.With(zap.String("system", "gorm")),
 		}, gormLogger.Config{
 			SlowThreshold:             time.Second * 5,
 			Colorful:                  false,
@@ -114,5 +117,23 @@ type zapWriter struct {
 }
 
 func (l *zapWriter) Printf(message string, args ...interface{}) {
-	l.Logger.Debug(fmt.Sprintf("[GORM TRACE] "+message, args))
+	l.Logger.Debug(fmt.Sprintf("[GORM TRACE] "+message, args...))
+}
+
+func (l *zapWriter) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
+	elapsed := time.Since(begin)
+	sql, rows := fc()
+
+	rowsStr := "-"
+	if rows != -1 {
+		rowsStr = strconv.FormatInt(rows, 10)
+	}
+
+	l.Logger.Debug(
+		"GORM TRACE",
+		zap.String("file", utils.FileWithLineNum()),
+		zap.Float64("elapsed_ms", float64(elapsed.Nanoseconds())/1e6),
+		zap.String("rows", rowsStr),
+		zap.String("sql", sql),
+	)
 }
