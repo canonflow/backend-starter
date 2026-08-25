@@ -2,8 +2,10 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/canonflow/backend-starter/internal/config"
+	"github.com/canonflow/backend-starter/internal/contract"
 	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/internal/dto"
 	usecase "github.com/canonflow/backend-starter/internal/usecase/user"
@@ -25,15 +27,20 @@ const (
 	ErrCodeSignInAccessToken    = "[USR-SI-004]" + " INTERNAL_SERVER_ERROR"
 
 	LogPrefixMe = "[USR-ME]"
+
+	LogPrefixGetPermission = "[USR-GP]"
+	ErrCodeGetPermission   = "[USR-GP-01]" + "INTERNAL_SERVER_ERROR"
 )
 
 type UserHandler struct {
-	UserUsecase usecase.IUserUsecase
+	UserUsecase      usecase.IUserUsecase
+	PermissionAccess contract.IPermissionAccess
 }
 
-func NewUserHandler(userUsecase usecase.IUserUsecase) *UserHandler {
+func NewUserHandler(userUsecase usecase.IUserUsecase, permissionAccess contract.IPermissionAccess) *UserHandler {
 	return &UserHandler{
-		UserUsecase: userUsecase,
+		UserUsecase:      userUsecase,
+		PermissionAccess: permissionAccess,
 	}
 }
 
@@ -161,6 +168,31 @@ func (h *UserHandler) Me(ctx fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).
 		JSON(response.Success(
 			user,
+			nil,
+		))
+}
+
+func (h *UserHandler) GetPermission(ctx fiber.Ctx) error {
+	ctxWrapper := core.NewFiberContextWrapper(ctx)
+	logger := core.LoggerFromContext(ctx.Context())
+
+	userId, ok := core.GetLocal[int](ctxWrapper, pkg.JWTUserIDKey)
+
+	if !ok {
+		return ctx.Status(fiber.StatusUnauthorized).
+			JSON(response.Error("UNAUTHORIZED_ACCESS", "Unauthorized", "-"))
+	}
+
+	permissions, err := h.PermissionAccess.GetUserPermissions(ctx.Context(), userId)
+	if err != nil {
+		logger.Info(LogPrefixGetPermission + fmt.Sprintf(" Error while getting permissions: %v\n", err.Error()))
+		return ctx.Status(fiber.StatusUnauthorized).
+			JSON(response.Error(ErrCodeGetPermission, "Internal Server Error", "-"))
+	}
+
+	return ctx.Status(fiber.StatusOK).
+		JSON(response.Success(
+			permissions,
 			nil,
 		))
 }

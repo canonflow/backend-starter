@@ -89,15 +89,16 @@ func (u *UserUsecaseV1) Create(ctx context.Context, email, password string) (mod
 		Email:     email,
 		Password:  hashedPassword,
 		DeletedAt: nil,
+		Roles:     []model.Role{{ID: 2}},
 	}
 
 	err = u.UserRepository.Create(tx, &user)
 	if err != nil {
-		return model.User{}, nil
+		return model.User{}, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return model.User{}, nil
+		return model.User{}, err
 	}
 
 	return user, nil

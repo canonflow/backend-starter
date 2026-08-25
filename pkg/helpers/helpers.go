@@ -74,3 +74,17 @@ func ReverseSlice[T any](s *[]T) {
 		arr[i], arr[j] = arr[j], arr[i]
 	}
 }
+
+func RemoveDuplicates[T comparable](slice []T) []T {
+	seen := make(map[T]struct{})
+	result := []T{}
+
+	for _, val := range slice {
+		if _, ok := seen[val]; !ok {
+			seen[val] = struct{}{}
+			result = append(result, val)
+		}
+	}
+
+	return result
+}

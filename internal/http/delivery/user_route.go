@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"github.com/canonflow/backend-starter/internal/config"
+	"github.com/canonflow/backend-starter/internal/contract"
 	"github.com/canonflow/backend-starter/internal/http/handler"
 	"github.com/canonflow/backend-starter/internal/http/middleware"
 	"github.com/gofiber/fiber/v3"
@@ -10,16 +11,23 @@ import (
 )
 
 type UserRoute struct {
-	App             fiber.Router
-	UserHandler     *handler.UserHandler
-	ThrottleStorage *fiberRedis.Storage
+	App              fiber.Router
+	UserHandler      *handler.UserHandler
+	ThrottleStorage  *fiberRedis.Storage
+	PermissionAccess contract.IPermissionAccess
 }
 
-func NewUserRoute(app fiber.Router, userHandler *handler.UserHandler, redisClient *fiberRedis.Storage) *UserRoute {
+func NewUserRoute(
+	app fiber.Router,
+	userHandler *handler.UserHandler,
+	redisClient *fiberRedis.Storage,
+	permissionAccess contract.IPermissionAccess,
+) *UserRoute {
 	return &UserRoute{
-		App:             app,
-		UserHandler:     userHandler,
-		ThrottleStorage: redisClient,
+		App:              app,
+		UserHandler:      userHandler,
+		ThrottleStorage:  redisClient,
+		PermissionAccess: permissionAccess,
 	}
 }
 
@@ -59,6 +67,23 @@ func (r *UserRoute) Setup() {
 			Storage:      r.ThrottleStorage,
 		}),
 		r.UserHandler.Me,
+	)
+
+	authPath.Get(
+		"/permissions",
+		middleware.Throttle(middleware.ThrottleConfig{
+			MaxAttempts:  10,
+			DecayMinutes: 1,
+			KeyPrefix:    "permissions",
+			Storage:      r.ThrottleStorage,
+		}),
+		middleware.Permission(
+			middleware.PermissionConfig{
+				PermissionAccess: r.PermissionAccess,
+			},
+			middleware.OnResource("permission", "view"),
+		),
+		r.UserHandler.GetPermission,
 	)
 
 	authPath.Post(

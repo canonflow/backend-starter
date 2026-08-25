@@ -35,6 +35,7 @@ func (r *UserRepository_MySQL) List(context context.Context, pagination *respons
 		Scopes(scopeFuncs...)
 
 	err := query.
+		Preload("Roles").
 		Find(&users).
 		Error
 	if err != nil {
@@ -57,6 +58,12 @@ func (r *UserRepository_MySQL) FindBy(context context.Context, column string, va
 	}
 
 	err := query.
+		Preload("Roles", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "name")
+		}).
+		Preload("Roles.Permissions", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "resource", "description")
+		}).
 		First(&user).
 		Error
 	if err != nil {
