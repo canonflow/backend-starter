@@ -53,6 +53,11 @@ func GenerateUUID() string {
 	return uuid.NewString()
 }
 
+func GenerateUUIDV7() string {
+	uuid, _ := uuid.NewV7()
+	return uuid.String()
+}
+
 func SliceContains[T comparable](slice []T, val T) bool {
 	for _, v := range slice {
 		if v == val {

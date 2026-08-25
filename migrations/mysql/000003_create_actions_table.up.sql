@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS actions (
+    `id` varchar(255) NOT NULL,
+    `name` varchar(50) NOT NULL,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_actions_name` (`name`)
+)

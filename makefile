@@ -1,4 +1,4 @@
-.PHONY: migrate-create migrate-up migrate-down migrate-version migrate-force migrate-drop key-generate
+.PHONY: migrate-create migrate-up migrate-down migrate-version migrate-force migrate-drop key-generate uuid-v7
 
 include .env
 export
@@ -58,3 +58,6 @@ migrate-drop:
 
 key-generate:
 	go run cmd/scripts/key_generator.go
+
+uuid-v7:
+	go run cmd/scripts/uuid.go
