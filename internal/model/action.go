@@ -8,10 +8,11 @@ import (
 )
 
 type Action struct {
-	ID        string     `json:"id,omitempty" gorm:"primarykey"`
-	Name      string     `json:"name,omitempty" gorm:"name"`
-	CreatedAt *time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at,omitempty"`
-	UpdatedAt *time.Time `gorm:"column:updated_at;autoCreateTime;autoUpdateTime" json:"updated_at,omitempty"`
+	ID          string       `json:"id,omitempty" gorm:"primarykey"`
+	Name        string       `json:"name,omitempty" gorm:"column:name"`
+	CreatedAt   *time.Time   `gorm:"column:created_at;autoCreateTime" json:"created_at,omitempty"`
+	UpdatedAt   *time.Time   `gorm:"column:updated_at;autoCreateTime;autoUpdateTime" json:"updated_at,omitempty"`
+	Permissions []Permission `json:"permissions,omitempty"`
 }
 
 func (a *Action) BeforeCreate(tx *gorm.DB) (err error) {
