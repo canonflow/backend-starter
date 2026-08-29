@@ -13,11 +13,11 @@ type RoleAccessRepository_MySQL struct {
 	DB *gorm.DB
 }
 
-// func newRoleRepository_MySQL(db *gorm.DB) IRoleRepository {
-// 	return &RoleRepository_MySQL{
-// 		DB: db,
-// 	}
-// }
+func newRoleRepository_MySQL(db *gorm.DB) IRoleAccessRepository {
+	return &RoleAccessRepository_MySQL{
+		DB: db,
+	}
+}
 
 func (r *RoleAccessRepository_MySQL) ListRole(context context.Context, pagination *response.Pagination, withPermission bool) ([]model.Role, error) {
 	var roles []model.Role
@@ -111,7 +111,9 @@ func (r *RoleAccessRepository_MySQL) CreatePermission(db *gorm.DB, permission *m
 }
 
 func (r *RoleAccessRepository_MySQL) DeletePermission(db *gorm.DB, permission *model.Permission) error {
-	return db.Save(permission).Error
+	return db.Model(permission).
+		Association("Roles").
+		Delete()
 }
 
 func (r *RoleAccessRepository_MySQL) ListAction(context context.Context, pagination *response.Pagination, withPermission bool) ([]model.Action, error) {

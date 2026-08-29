@@ -115,7 +115,7 @@ func (u *RoleAccessUsecaseV1) CreateRole(context context.Context, name, descript
 	tx := u.DB.WithContext(context).Begin()
 
 	if tx.Error != nil {
-		return model.Role{}, nil
+		return model.Role{}, tx.Error
 	}
 	defer tx.Rollback()
 
@@ -217,9 +217,59 @@ func (u *RoleAccessUsecaseV1) ListPermission(context context.Context, limit, pag
 
 	return permissions, &pagination, nil
 }
-func (u *RoleAccessUsecaseV1) FindPermissionBy(context context.Context, column string, value any, withAction bool) (*model.Permission, error)
-func (u *RoleAccessUsecaseV1) CreatePermission(context context.Context, actionId int, resource, description string) (model.Permission, error)
-func (u *RoleAccessUsecaseV1) DeletePermission(context context.Context, permission *model.Permission) error
+
+func (u *RoleAccessUsecaseV1) FindPermissionBy(context context.Context, column string, value any, withAction bool) (*model.Permission, error) {
+	permission, err := u.RoleAccessRepository.FindPermissionBy(context, column, value, withAction)
+	if err != nil {
+		return nil, err
+	}
+
+	return permission, nil
+}
+
+func (u *RoleAccessUsecaseV1) CreatePermission(context context.Context, actionId, resource, description string) (model.Permission, error) {
+	tx := u.DB.WithContext(context).Begin()
+
+	if tx.Error != nil {
+		return model.Permission{}, tx.Error
+	}
+	defer tx.Rollback()
+
+	permission := model.Permission{
+		ActionID:    actionId,
+		Resource:    resource,
+		Description: description,
+	}
+
+	if err := u.RoleAccessRepository.CreatePermission(tx, &permission); err != nil {
+		return model.Permission{}, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return model.Permission{}, err
+	}
+
+	return permission, nil
+}
+
+func (u *RoleAccessUsecaseV1) DeletePermission(context context.Context, permission *model.Permission) error {
+	tx := u.DB.WithContext(context).Begin()
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+	defer tx.Rollback()
+
+	if err := u.RoleAccessRepository.DeletePermission(tx, permission); err != nil {
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (u *RoleAccessUsecaseV1) ListAction(context context.Context, limit, page int, sortBy, sort string, withPermission bool) ([]model.Action, *response.Pagination, error) {
 	key := buildCacheListKey(ActionCacheKeyPrefix, limit, page, sortBy, sort)
@@ -255,5 +305,35 @@ func (u *RoleAccessUsecaseV1) ListAction(context context.Context, limit, page in
 
 	return actions, &pagination, nil
 }
-func (u *RoleAccessUsecaseV1) FindActionBy(context context.Context, column string, value any, withPermission bool) (*model.Action, error)
-func (u *RoleAccessUsecaseV1) CreateAction(context context.Context, name string) (model.Action, error)
+
+func (u *RoleAccessUsecaseV1) FindActionBy(context context.Context, column string, value any, withPermission bool) (*model.Action, error) {
+	action, err := u.RoleAccessRepository.FindActionBy(context, column, value, withPermission)
+	if err != nil {
+		return nil, err
+	}
+
+	return action, nil
+}
+
+func (u *RoleAccessUsecaseV1) CreateAction(context context.Context, name string) (model.Action, error) {
+	tx := u.DB.WithContext(context).Begin()
+
+	if tx.Error != nil {
+		return model.Action{}, tx.Error
+	}
+	defer tx.Rollback()
+
+	action := model.Action{
+		Name: name,
+	}
+
+	if err := u.RoleAccessRepository.CreateAction(tx, &action); err != nil {
+		return model.Action{}, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return model.Action{}, err
+	}
+
+	return action, nil
+}

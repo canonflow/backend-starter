@@ -16,7 +16,7 @@ type IRoleAccessUsecase interface {
 
 	ListPermission(context context.Context, limit, page int, sortBy, sort string, withAction bool) ([]model.Permission, *response.Pagination, error)
 	FindPermissionBy(context context.Context, column string, value any, withAction bool) (*model.Permission, error)
-	CreatePermission(context context.Context, actionId int, resource, description string) (model.Permission, error)
+	CreatePermission(context context.Context, actionId, resource, description string) (model.Permission, error)
 	DeletePermission(context context.Context, permission *model.Permission) error
 
 	ListAction(context context.Context, limit, page int, sortBy, sort string, withPermission bool) ([]model.Action, *response.Pagination, error)
