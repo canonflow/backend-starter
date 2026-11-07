@@ -57,6 +57,8 @@ const (
 	JWTDomain
 	JWTSecure
 	JWTHTTPOnly
+
+	GRPCServerEnabled
 )
 
 var cfg *config
@@ -98,6 +100,8 @@ type config struct {
 	JWTDomain           string
 	JWTSecure           bool
 	JWTHTTPOnly         bool
+
+	GRPCServerEnabled bool
 }
 
 func init() {
@@ -192,6 +196,12 @@ func loadConfig() {
 			os.Getenv("JWT_HTTP_ONLY"),
 			true,
 		)
+
+		cfg.GRPCServerEnabled = helpers.Parser(
+			strconv.ParseBool,
+			os.Getenv("GRPC_SERVER_ENABLED"),
+			false,
+		)
 	}
 }
 
@@ -255,6 +265,8 @@ func (c *config) get(key ConfigKey) any {
 		return c.JWTSecure
 	case JWTHTTPOnly:
 		return c.JWTHTTPOnly
+	case GRPCServerEnabled:
+		return c.GRPCServerEnabled
 	default:
 		return nil
 	}
