@@ -58,6 +58,8 @@ const (
 	JWTSecure
 	JWTHTTPOnly
 
+	GRPCServerHost
+	GRPCServerPort
 	GRPCServerEnabled
 )
 
@@ -101,6 +103,8 @@ type config struct {
 	JWTSecure           bool
 	JWTHTTPOnly         bool
 
+	GRPCServerHost    string
+	GRPCServerPort    int
 	GRPCServerEnabled bool
 }
 
@@ -197,6 +201,12 @@ func loadConfig() {
 			true,
 		)
 
+		cfg.GRPCServerHost = os.Getenv("GRPC_SERVER_HOST")
+		cfg.GRPCServerPort = helpers.Parser(
+			strconv.Atoi,
+			os.Getenv("GRPC_SERVER_PORT"),
+			50051,
+		)
 		cfg.GRPCServerEnabled = helpers.Parser(
 			strconv.ParseBool,
 			os.Getenv("GRPC_SERVER_ENABLED"),
@@ -265,6 +275,10 @@ func (c *config) get(key ConfigKey) any {
 		return c.JWTSecure
 	case JWTHTTPOnly:
 		return c.JWTHTTPOnly
+	case GRPCServerHost:
+		return c.GRPCServerHost
+	case GRPCServerPort:
+		return c.GRPCServerPort
 	case GRPCServerEnabled:
 		return c.GRPCServerEnabled
 	default:
