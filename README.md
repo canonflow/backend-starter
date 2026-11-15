@@ -22,7 +22,7 @@ A production-minded Go backend starter built on [Fiber v3](https://gofiber.io/),
 
 | Concern        | Technology                          |
 | -------------- | ----------------------------------- |
-| Language       | Go 1.26                             |
+| Language       | Go 1.27                             |
 | Web framework  | Fiber v3                            |
 | ORM            | GORM (MySQL driver)                |
 | Cache / store  | Redis (go-redis)                   |
