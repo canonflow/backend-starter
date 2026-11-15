@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 func RoleWithPermission(db *gorm.DB) *gorm.DB {
 	return db.Preload("Permissions").
-		Preload("Permissions.Actions", func(tx *gorm.DB) *gorm.DB {
+		Preload("Permissions.Action", func(tx *gorm.DB) *gorm.DB {
 			return tx.Select("id", "name")
 		})
 }

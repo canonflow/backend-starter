@@ -1,14 +1,13 @@
 package app
 
 import (
-	"github.com/canonflow/backend-starter/internal/config"
-	"github.com/canonflow/backend-starter/internal/core/permission"
+	"github.com/canonflow/backend-starter/internal/app/cache"
+	"github.com/canonflow/backend-starter/internal/app/permission"
+	accessFactory "github.com/canonflow/backend-starter/internal/domain/access/factory"
+	userFactory "github.com/canonflow/backend-starter/internal/domain/user/factory"
 	"github.com/canonflow/backend-starter/internal/http/delivery"
 	"github.com/canonflow/backend-starter/internal/http/handler"
 	"github.com/canonflow/backend-starter/internal/http/middleware"
-	internalRepo "github.com/canonflow/backend-starter/internal/repository"
-	userRepo "github.com/canonflow/backend-starter/internal/repository/user"
-	usecase "github.com/canonflow/backend-starter/internal/usecase/user"
 
 	"github.com/gofiber/fiber/v3"
 	fiberredis "github.com/gofiber/storage/redis/v3"
@@ -23,16 +22,20 @@ type BootstrapConfig struct {
 }
 
 func Bootstrap(cfg *BootstrapConfig) {
-	permissionAccessStorage := permission.NewPermissionAccessStorage(cfg.DB, cfg.Redis)
+	cacheRepo := cache.ResolveCacheRepositoryRedis()
+	permissionAccessStorage := permission.ResolvePermissionRepository(cfg.DB, cfg.Redis)
 
 	// Setup Repo
-	userRepository := userRepo.NewUserRepositoryFactory(cfg.DB, internalRepo.GetDriver(config.GetOrDefault(config.DBDriver, "mysql")))
+	userRepository := userFactory.ResolveUserRepository(cfg.DB)
+	accessRepo := accessFactory.ResolveAccessRepository(cfg.DB)
 
 	// Setup Usecase
-	userUsecase := usecase.NewUserUsecaseV1(cfg.DB, userRepository)
+	userUsecase := userFactory.ResolveUserUseCaseV1(cfg.DB, userRepository)
+	accessUsecase := accessFactory.ResolveAccessUseCaseV1(cfg.DB, cacheRepo, accessRepo)
 
 	// Setup Handler
 	userHandler := handler.NewUserHandler(userUsecase, permissionAccessStorage)
+	accessHandler := handler.NewRoleAccessHandler(accessUsecase)
 
 	// Setup Middleware
 	requestLoggerMiddleware := middleware.RequestLoggerMiddleware()
@@ -41,8 +44,10 @@ func Bootstrap(cfg *BootstrapConfig) {
 	// Setup Route
 	throttleStorage := fiberredis.NewFromConnection(cfg.Redis)
 	routeGroup := delivery.RouteGroup{}
+
 	userRoute := delivery.NewUserRoute(api, userHandler, throttleStorage, permissionAccessStorage)
-	routeGroup.Register(userRoute)
+	accessRoute := delivery.NewRoleAccessRoute(api, accessHandler, throttleStorage, permissionAccessStorage)
+	routeGroup.Register(userRoute, accessRoute)
 
 	// Init
 	routeGroup.Wire()

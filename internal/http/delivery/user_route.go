@@ -1,8 +1,8 @@
 package delivery
 
 import (
+	permissionRepository "github.com/canonflow/backend-starter/internal/app/permission/repository"
 	"github.com/canonflow/backend-starter/internal/config"
-	"github.com/canonflow/backend-starter/internal/contract"
 	"github.com/canonflow/backend-starter/internal/http/handler"
 	"github.com/canonflow/backend-starter/internal/http/middleware"
 	"github.com/gofiber/fiber/v3"
@@ -14,14 +14,14 @@ type UserRoute struct {
 	App              fiber.Router
 	UserHandler      *handler.UserHandler
 	ThrottleStorage  *fiberRedis.Storage
-	PermissionAccess contract.IPermissionAccess
+	PermissionAccess permissionRepository.IPermissionAccess
 }
 
 func NewUserRoute(
 	app fiber.Router,
 	userHandler *handler.UserHandler,
 	redisClient *fiberRedis.Storage,
-	permissionAccess contract.IPermissionAccess,
+	permissionAccess permissionRepository.IPermissionAccess,
 ) *UserRoute {
 	return &UserRoute{
 		App:              app,

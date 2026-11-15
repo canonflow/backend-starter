@@ -10,9 +10,9 @@ import (
 
 	"github.com/canonflow/backend-starter/internal/app"
 	_ "github.com/canonflow/backend-starter/internal/app"
+	appContext "github.com/canonflow/backend-starter/internal/app/context"
 	"github.com/canonflow/backend-starter/internal/config"
 	_ "github.com/canonflow/backend-starter/internal/config"
-	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
 )
@@ -27,8 +27,8 @@ func PrintRoutes(app *fiber.App) {
 
 func main() {
 	fiberApp := app.NewFiber()
-	db := app.NewDatabase(config.Get[string](config.DBDriver), core.GetLogger())
-	redisClient := app.NewRedis(core.GetLogger())
+	db := app.NewDatabase(config.Get[string](config.DBDriver), appContext.GetLogger())
+	redisClient := app.NewRedis(appContext.GetLogger())
 
 	appHost := config.Get[string](config.AppHost)
 	appPort := config.Get[string](config.AppPort)
@@ -48,7 +48,7 @@ func main() {
 			EnablePrefork: true,
 		}); err != nil {
 			if !fiber.IsChild() {
-				core.GetLogger().Info("Server Error", zap.String("error", err.Error()))
+				appContext.GetLogger().Info("Server Error", zap.String("error", err.Error()))
 			}
 		}
 	}()
@@ -59,17 +59,17 @@ func main() {
 	<-quit
 
 	if !fiber.IsChild() {
-		core.GetLogger().Info("Shutting down server...")
+		appContext.GetLogger().Info("Shutting down server...")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := fiberApp.ShutdownWithContext(ctx); err != nil {
-		core.GetLogger().Fatal("Forced Shutdown!!!", zap.String("error", err.Error()))
+		appContext.GetLogger().Fatal("Forced Shutdown!!!", zap.String("error", err.Error()))
 	}
 
 	if !fiber.IsChild() {
-		core.GetLogger().Info("Server exited gracefully")
+		appContext.GetLogger().Info("Server exited gracefully")
 	}
 }

@@ -8,9 +8,9 @@ import (
 
 	"github.com/canonflow/backend-starter/internal/app"
 	_ "github.com/canonflow/backend-starter/internal/app"
+	appContext "github.com/canonflow/backend-starter/internal/app/context"
 	"github.com/canonflow/backend-starter/internal/config"
 	_ "github.com/canonflow/backend-starter/internal/config"
-	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/pkg/helpers"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
@@ -28,7 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := core.GetLogger().With(
+	logger := appContext.GetLogger().With(
 		zap.String("system", "migration"),
 	)
 

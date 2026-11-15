@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
+	appContext "github.com/canonflow/backend-starter/internal/app/context"
+	permissionRepository "github.com/canonflow/backend-starter/internal/app/permission/repository"
+	appVars "github.com/canonflow/backend-starter/internal/app/vars"
 	"github.com/canonflow/backend-starter/internal/config"
-	"github.com/canonflow/backend-starter/internal/contract"
-	"github.com/canonflow/backend-starter/internal/core"
 	"github.com/canonflow/backend-starter/internal/dto"
-	usecase "github.com/canonflow/backend-starter/internal/usecase/user"
-	"github.com/canonflow/backend-starter/pkg"
+	usecase "github.com/canonflow/backend-starter/internal/domain/user/usecase"
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
@@ -34,10 +34,10 @@ const (
 
 type UserHandler struct {
 	UserUsecase      usecase.IUserUsecase
-	PermissionAccess contract.IPermissionAccess
+	PermissionAccess permissionRepository.IPermissionAccess
 }
 
-func NewUserHandler(userUsecase usecase.IUserUsecase, permissionAccess contract.IPermissionAccess) *UserHandler {
+func NewUserHandler(userUsecase usecase.IUserUsecase, permissionAccess permissionRepository.IPermissionAccess) *UserHandler {
 	return &UserHandler{
 		UserUsecase:      userUsecase,
 		PermissionAccess: permissionAccess,
@@ -46,7 +46,7 @@ func NewUserHandler(userUsecase usecase.IUserUsecase, permissionAccess contract.
 
 func (h *UserHandler) SignUp(ctx fiber.Ctx) error {
 	var userDto dto.CreateUserRequest
-	logger := core.LoggerFromContext(ctx.Context())
+	logger := appContext.LoggerFromContext(ctx.Context())
 
 	if err := ctx.Bind().Body(&userDto); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -122,7 +122,7 @@ func (h *UserHandler) SignIn(ctx fiber.Ctx) error {
 	}
 
 	// Set Access Token to HTTP-Only Cookie
-	wrapper := core.NewFiberContextWrapper(ctx)
+	wrapper := appContext.NewFiberContextWrapper(ctx)
 	wrapper.SetToken(tokenString, config.Get[uint](config.JWTDurationInMinute))
 
 	return ctx.Status(fiber.StatusOK).
@@ -133,7 +133,7 @@ func (h *UserHandler) SignIn(ctx fiber.Ctx) error {
 }
 
 func (h *UserHandler) SignOut(ctx fiber.Ctx) error {
-	ctxWrapper := core.NewFiberContextWrapper(ctx)
+	ctxWrapper := appContext.NewFiberContextWrapper(ctx)
 
 	ctxWrapper.DeleteToken()
 
@@ -145,10 +145,10 @@ func (h *UserHandler) SignOut(ctx fiber.Ctx) error {
 }
 
 func (h *UserHandler) Me(ctx fiber.Ctx) error {
-	ctxWrapper := core.NewFiberContextWrapper(ctx)
-	logger := core.LoggerFromContext(ctx.Context())
+	ctxWrapper := appContext.NewFiberContextWrapper(ctx)
+	logger := appContext.LoggerFromContext(ctx.Context())
 
-	userId, ok := core.GetLocal[int](ctxWrapper, pkg.JWTUserIDKey)
+	userId, ok := appContext.GetLocal[int](ctxWrapper, appVars.JWTUserIDKey)
 
 	if !ok {
 		return ctx.Status(fiber.StatusUnauthorized).
@@ -173,10 +173,10 @@ func (h *UserHandler) Me(ctx fiber.Ctx) error {
 }
 
 func (h *UserHandler) GetPermission(ctx fiber.Ctx) error {
-	ctxWrapper := core.NewFiberContextWrapper(ctx)
-	logger := core.LoggerFromContext(ctx.Context())
+	ctxWrapper := appContext.NewFiberContextWrapper(ctx)
+	logger := appContext.LoggerFromContext(ctx.Context())
 
-	userId, ok := core.GetLocal[int](ctxWrapper, pkg.JWTUserIDKey)
+	userId, ok := appContext.GetLocal[int](ctxWrapper, appVars.JWTUserIDKey)
 
 	if !ok {
 		return ctx.Status(fiber.StatusUnauthorized).

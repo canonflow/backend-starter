@@ -3,7 +3,8 @@ package middleware
 import (
 	"errors"
 
-	"github.com/canonflow/backend-starter/internal/core"
+	appContext "github.com/canonflow/backend-starter/internal/app/context"
+	appVars "github.com/canonflow/backend-starter/internal/app/vars"
 	"github.com/canonflow/backend-starter/pkg"
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"
@@ -11,7 +12,7 @@ import (
 
 func AuthMiddleware(jwtSecret string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		ctxWrapper := core.NewFiberContextWrapper(ctx)
+		ctxWrapper := appContext.NewFiberContextWrapper(ctx)
 
 		token, err := ctxWrapper.GetToken()
 
@@ -43,8 +44,8 @@ func AuthMiddleware(jwtSecret string) fiber.Handler {
 		}
 
 		// Make user info available to downstream handlers
-		core.SetLocal(ctxWrapper, pkg.JWTUserIDKey, userID)
-		core.SetLocal(ctxWrapper, pkg.JWTEmailKey, email)
+		appContext.SetLocal(ctxWrapper, appVars.JWTUserIDKey, userID)
+		appContext.SetLocal(ctxWrapper, appVars.JWTEmailKey, email)
 
 		return ctx.Next()
 	}

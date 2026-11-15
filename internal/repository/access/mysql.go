@@ -19,17 +19,22 @@ func newRoleRepository_MySQL(db *gorm.DB) IRoleAccessRepository {
 	}
 }
 
-func (r *RoleAccessRepository_MySQL) ListRole(context context.Context, pagination *response.Pagination, withPermission bool) ([]model.Role, error) {
+func (r *RoleAccessRepository_MySQL) ListRole(context context.Context, pagination *response.Pagination, searchFrom string, searchValue any, withPermission bool) ([]model.Role, error) {
 	var roles []model.Role
 
-	query := r.DB.WithContext(context).
-		Scopes(scope.Paginate(roles, pagination, r.DB))
+	query := r.DB.WithContext(context)
 
 	if withPermission {
 		query = query.Scopes(scope.RoleWithPermission)
 	}
 
-	err := query.Find(&roles).Error
+	if searchFrom != "" {
+		query = query.Scopes(scope.Search(searchFrom, searchValue, r.DB))
+	}
+
+	err := query.
+		Scopes(scope.Paginate(roles, pagination, r.DB)).
+		Find(&roles).Error
 	if err != nil {
 		return nil, err
 	}

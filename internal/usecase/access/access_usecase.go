@@ -8,7 +8,7 @@ import (
 )
 
 type IRoleAccessUsecase interface {
-	ListRole(context context.Context, limit, page int, sortBy, sort string, withPermission bool) ([]model.Role, *response.Pagination, error)
+	ListRole(context context.Context, limit, page int, searchFrom string, searchValue any, sortBy, sort string, withPermission bool) ([]model.Role, *response.Pagination, error)
 	FindRoleBy(context context.Context, column string, value any, withPermission bool) (*model.Role, error)
 	CreateRole(context context.Context, name, description string) (model.Role, error)
 	UpdateRole(context context.Context, role *model.Role) error

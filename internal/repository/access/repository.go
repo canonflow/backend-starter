@@ -9,7 +9,7 @@ import (
 )
 
 type IRoleAccessRepository interface {
-	ListRole(context context.Context, pagination *response.Pagination, withPermission bool) ([]model.Role, error)
+	ListRole(context context.Context, pagination *response.Pagination, searchFrom string, searchValue any, withPermission bool) ([]model.Role, error)
 	FindRoleBy(context context.Context, column string, value any, withPermission bool) (*model.Role, error)
 	CreateRole(db *gorm.DB, role *model.Role) error
 	UpdateRole(db *gorm.DB, role *model.Role) error

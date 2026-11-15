@@ -56,19 +56,22 @@ func NewRoleAccessUsecaseV1(db *gorm.DB, rdb *redis.Client, roleAccessRepository
 	}
 }
 
-func buildCacheListKey(prefix string, limit, page int, sortBy, sort string) string {
+func buildCacheListKey(prefix string, limit, page int, searchFrom string, searchValue any, sortBy, sort string, withPermission bool) string {
 	s, _ := sonic.Marshal(map[string]any{
-		"limit":   limit,
-		"page":    page,
-		"sort_by": sortBy,
-		"sort":    sort,
+		"limit":           limit,
+		"page":            page,
+		"sort_by":         sortBy,
+		"sort":            sort,
+		"with_permission": withPermission,
+		"search_from":     searchFrom,
+		"search_value":    searchValue,
 	})
 
 	return prefix + string(s)
 }
 
-func (u *RoleAccessUsecaseV1) ListRole(context context.Context, limit, page int, sortBy, sort string, withPermission bool) ([]model.Role, *response.Pagination, error) {
-	key := buildCacheListKey(RoleCacheKeyPrefix, limit, page, sortBy, sort)
+func (u *RoleAccessUsecaseV1) ListRole(context context.Context, limit, page int, searchFrom string, searchValue any, sortBy, sort string, withPermission bool) ([]model.Role, *response.Pagination, error) {
+	key := buildCacheListKey(RoleCacheKeyPrefix, limit, page, searchFrom, searchValue, sortBy, sort, withPermission)
 
 	cached, err := u.Rdb.Get(context, key).Result()
 	if err == nil {
@@ -89,6 +92,8 @@ func (u *RoleAccessUsecaseV1) ListRole(context context.Context, limit, page int,
 	roles, err := u.RoleAccessRepository.ListRole(
 		context,
 		&pagination,
+		searchFrom,
+		searchValue,
 		withPermission,
 	)
 	if err != nil {
@@ -184,16 +189,16 @@ func (u *RoleAccessUsecaseV1) AddPermissionToRole(context context.Context, role 
 }
 
 func (u *RoleAccessUsecaseV1) ListPermission(context context.Context, limit, page int, sortBy, sort string, withAction bool) ([]model.Permission, *response.Pagination, error) {
-	key := buildCacheListKey(PermissionCacheKeyPrefix, limit, page, sortBy, sort)
+	// key := buildCacheListKey(PermissionCacheKeyPrefix, limit, page, sortBy, sort)
 
-	cached, err := u.Rdb.Get(context, key).Result()
-	if err == nil {
-		var result cachePermissionList
+	// cached, err := u.Rdb.Get(context, key).Result()
+	// if err == nil {
+	// 	var result cachePermissionList
 
-		if unmarshalErr := sonic.Unmarshal([]byte(cached), &result); unmarshalErr == nil {
-			return result.Data, result.Pagination, nil
-		}
-	}
+	// 	if unmarshalErr := sonic.Unmarshal([]byte(cached), &result); unmarshalErr == nil {
+	// 		return result.Data, result.Pagination, nil
+	// 	}
+	// }
 
 	pagination := response.Pagination{
 		Limit:  limit,
@@ -211,9 +216,9 @@ func (u *RoleAccessUsecaseV1) ListPermission(context context.Context, limit, pag
 		return nil, nil, err
 	}
 
-	if b, err := sonic.Marshal(cachePermissionList{Data: permissions, Pagination: &pagination}); err == nil {
-		_ = u.Rdb.Set(context, key, b, PerissionCacheTTL)
-	}
+	// if b, err := sonic.Marshal(cachePermissionList{Data: permissions, Pagination: &pagination}); err == nil {
+	// 	_ = u.Rdb.Set(context, key, b, PerissionCacheTTL)
+	// }
 
 	return permissions, &pagination, nil
 }
@@ -272,16 +277,16 @@ func (u *RoleAccessUsecaseV1) DeletePermission(context context.Context, permissi
 }
 
 func (u *RoleAccessUsecaseV1) ListAction(context context.Context, limit, page int, sortBy, sort string, withPermission bool) ([]model.Action, *response.Pagination, error) {
-	key := buildCacheListKey(ActionCacheKeyPrefix, limit, page, sortBy, sort)
+	// key := buildCacheListKey(ActionCacheKeyPrefix, limit, page, sortBy, sort)
 
-	cached, err := u.Rdb.Get(context, key).Result()
-	if err == nil {
-		var result cacheActionList
+	// cached, err := u.Rdb.Get(context, key).Result()
+	// if err == nil {
+	// 	var result cacheActionList
 
-		if unmarshalErr := sonic.Unmarshal([]byte(cached), &result); unmarshalErr == nil {
-			return result.Data, result.Pagination, nil
-		}
-	}
+	// 	if unmarshalErr := sonic.Unmarshal([]byte(cached), &result); unmarshalErr == nil {
+	// 		return result.Data, result.Pagination, nil
+	// 	}
+	// }
 
 	pagination := response.Pagination{
 		Limit:  limit,
@@ -299,9 +304,9 @@ func (u *RoleAccessUsecaseV1) ListAction(context context.Context, limit, page in
 		return nil, nil, err
 	}
 
-	if b, err := sonic.Marshal(cacheActionList{Data: actions, Pagination: &pagination}); err == nil {
-		_ = u.Rdb.Set(context, key, b, ActionCacheTTL)
-	}
+	// if b, err := sonic.Marshal(cacheActionList{Data: actions, Pagination: &pagination}); err == nil {
+	// 	_ = u.Rdb.Set(context, key, b, ActionCacheTTL)
+	// }
 
 	return actions, &pagination, nil
 }

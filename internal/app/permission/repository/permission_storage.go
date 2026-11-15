@@ -1,4 +1,4 @@
-package permission
+package repository
 
 import (
 	"context"
@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/canonflow/backend-starter/internal/contract"
-	"github.com/canonflow/backend-starter/internal/core"
+	coreContext "github.com/canonflow/backend-starter/internal/app/context"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -26,7 +25,7 @@ func permissionCacheKey(userID int) string {
 	return fmt.Sprintf("%s%d", PermissionCacheKeyPrefix, userID)
 }
 
-func NewPermissionAccessStorage(db *gorm.DB, rdb *redis.Client) contract.IPermissionAccess {
+func NewPermissionAccessStorage(db *gorm.DB, rdb *redis.Client) IPermissionAccess {
 	return &PermissionAccessStorage{
 		DB:  db,
 		Rdb: rdb,
@@ -54,7 +53,7 @@ func (c *PermissionAccessStorage) HasPermission(ctx context.Context, userID int,
 }
 
 func (c *PermissionAccessStorage) GetUserPermissions(ctx context.Context, userID int) ([]string, error) {
-	log := core.LoggerFromContext(ctx)
+	log := coreContext.LoggerFromContext(ctx)
 
 	key := permissionCacheKey(userID)
 

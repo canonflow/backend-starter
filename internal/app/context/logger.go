@@ -1,4 +1,4 @@
-package core
+package context
 
 import (
 	"os"
@@ -11,7 +11,6 @@ import (
 
 var logger *zap.Logger
 
-// Used inside init function for app package
 func CreateLogger() {
 	if logger == nil {
 		encoderCfg := zap.NewProductionEncoderConfig()
@@ -68,5 +67,8 @@ func getLogLevelFromEnv() zapcore.Level {
 }
 
 func GetLogger() *zap.Logger {
+	if logger == nil {
+		CreateLogger()
+	}
 	return logger
 }

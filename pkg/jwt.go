@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"context"
 	"errors"
 	"time"
 
@@ -9,23 +8,10 @@ import (
 )
 
 var (
-	TOKEN_COOKIE    = "Authorization"
 	ErrInvalidToken = errors.New("invalid or expired token")
 	ErrMissingClaim = errors.New("required claim missing or malformed")
 	ErrTokenExpired = errors.New("token has expired")
-
-	JWTUserIDKey = "JWT_USER_ID_KEY"
-	JWTEmailKey = "JWT_EMAIL_KEU"
 )
-
-type AccessTokenContextWrapper interface {
-	Context() context.Context
-	GetToken() (string, error)
-	SetToken(value string, durationInMinutes uint)
-	DeleteToken()
-	SetLocal(key string, value any)
-	Local(key string) any
-}
 
 func CreateAccessToken(id int, email, key string, durationInMinutes uint) (string, error) {
 	now := time.Now()

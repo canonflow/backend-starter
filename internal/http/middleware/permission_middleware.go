@@ -3,9 +3,9 @@ package middleware
 import (
 	"fmt"
 
-	"github.com/canonflow/backend-starter/internal/contract"
-	"github.com/canonflow/backend-starter/internal/core"
-	"github.com/canonflow/backend-starter/pkg"
+	appContext "github.com/canonflow/backend-starter/internal/app/context"
+	permissionRepository "github.com/canonflow/backend-starter/internal/app/permission/repository"
+	appVars "github.com/canonflow/backend-starter/internal/app/vars"
 	"github.com/canonflow/backend-starter/pkg/helpers"
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"
@@ -21,7 +21,7 @@ func (o *on) Get() string {
 }
 
 type PermissionConfig struct {
-	PermissionAccess contract.IPermissionAccess
+	PermissionAccess permissionRepository.IPermissionAccess
 }
 
 func OnResource(resource, action string) on {
@@ -41,8 +41,8 @@ func Permission(cfg PermissionConfig, resource on, resources ...on) fiber.Handle
 
 		data = helpers.RemoveDuplicates(data)
 
-		ctxWrapper := core.NewFiberContextWrapper(ctx)
-		userId, ok := core.GetLocal[int](ctxWrapper, pkg.JWTUserIDKey)
+		ctxWrapper := appContext.NewFiberContextWrapper(ctx)
+		userId, ok := appContext.GetLocal[int](ctxWrapper, appVars.JWTUserIDKey)
 
 		if !ok {
 			return ctx.Status(fiber.StatusForbidden).
