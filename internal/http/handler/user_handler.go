@@ -8,7 +8,7 @@ import (
 	permissionRepository "github.com/canonflow/backend-starter/internal/app/permission/repository"
 	appVars "github.com/canonflow/backend-starter/internal/app/vars"
 	"github.com/canonflow/backend-starter/internal/config"
-	"github.com/canonflow/backend-starter/internal/dto"
+	"github.com/canonflow/backend-starter/internal/domain/user/dto"
 	usecase "github.com/canonflow/backend-starter/internal/domain/user/usecase"
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"

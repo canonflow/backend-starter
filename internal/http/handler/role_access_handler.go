@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	appContext "github.com/canonflow/backend-starter/internal/app/context"
-	"github.com/canonflow/backend-starter/internal/dto"
+	"github.com/canonflow/backend-starter/internal/domain/access/dto"
 	usecase "github.com/canonflow/backend-starter/internal/domain/access/usecase"
 	"github.com/canonflow/backend-starter/pkg/response"
 	"github.com/gofiber/fiber/v3"
